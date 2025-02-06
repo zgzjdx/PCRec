@@ -1,4 +1,4 @@
-# UNBERT
+# PCRec
 
 The official pytorch implementation for our paper “PCRec: A Multi-Interest News Recommendation Framework with
 Prompt-Guided Cross-view Contrastive Learning”.
