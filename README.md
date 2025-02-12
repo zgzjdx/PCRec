@@ -21,7 +21,7 @@ and place it in the pretrainedModel folder.
 
 
 ```python
-CUDA_VISIBLE_DEVICES=0,1,2,3 python run.py --split small --batch_size 128 --lr 2e-5 --use_amp --eval
+CUDA_VISIBLE_DEVICES=0,1,2,3 python run.py --split tiny --batch_size 128 --lr 2e-5 --use_amp --eval
 ```
 For more parameter settings, please refer to `run.py`.
 
