@@ -9,7 +9,6 @@ from transformers.modeling_bert import BertEmbeddings, BertEncoder, BertOnlyMLMH
 from transformers.configuration_bert import BertConfig
 from .attention import DotProductAttention, TargetAwareAttention, PolyAttention, AdditiveAttention
 from .pooling import BertPooler
-from .popularity_model import PopularityModel
 from .category_embedding import PretrainedCategoryEmbedding
 from .utils import pairwise_cosine_similarity
 from .new_modeling_bert import BertModelForPrompt
@@ -279,16 +278,16 @@ class UNBERT(nn.Module):
         # ------------------CL-user-start---------------------
         sims_masks = []
         hist_pooled_outputs, interest_score, weights = self.poly_attn(embeddings=hist_pooled_outputs, attn_mask=hist_mask, bias=category_bias)
-        with open(os.path.join("visualize-data/news_weights.tsv"), 'w',
-                  encoding='utf-8') as file:
-            weights = interest_score.view(batch_size * num_candidates, -1).cpu().detach().numpy()
-            print(weights)
-            print(weights.shape)
-            cats = hist_category_ids.view(batch_size * num_candidates, -1).numpy()
-            for i in range(len(weights)):
-                emb = weights[i].tolist()
-                cat = cats[i]
-                file.write(f'{cat}\t{emb}\n')
+        # with open(os.path.join("visualize-data/news_weights.tsv"), 'w',
+        #           encoding='utf-8') as file:
+        #     weights = interest_score.view(batch_size * num_candidates, -1).cpu().detach().numpy()
+        #     print(weights)
+        #     print(weights.shape)
+        #     cats = hist_category_ids.view(batch_size * num_candidates, -1).numpy()
+        #     for i in range(len(weights)):
+        #         emb = weights[i].tolist()
+        #         cat = cats[i]
+        #         file.write(f'{cat}\t{emb}\n')
         if self.cl_category or self.cl_user:
             user_cos_sim = self.cos_sim(hist_pooled_outputs.view(batch_size, -1).unsqueeze(1),
                                         hist_pooled_outputs.view(batch_size, -1).unsqueeze(0))
@@ -309,28 +308,28 @@ class UNBERT(nn.Module):
             # interest_same_mask = interest_same_mask + 0
             sims_masks.append(interest_same_mask)
 
-        with open(os.path.join("visualize-data/users-history-batch-" + str(self.batch_idx) + ".tsv"), 'w',
-                  encoding='utf-8') as file:
-            users_emb = hist_pooled_outputs.view(batch_size, -1)
-            # top1interests = sorted_interests.view(batch_size, -1)
-            users_emb = users_emb.cpu().detach().numpy()
-            # top1interests = top1interests.cpu().numpy()
-            saved_data = ''
-            num_categories = 18
-            user_clicks = torch.zeros((batch_size, num_categories), dtype=torch.float32).to(self.device)
-            # print('hist_category_ids', hist_category_ids)
-            for i in range(batch_size):
-                user_clicks[i] = torch.bincount(hist_category_ids[i], minlength=num_categories)
-            # print('user_clicks', user_clicks)
-            for i in range(len(users_emb)):
-                # top1 = top1interests[i][0]
-                user_emb = users_emb[i].tolist()
-                history = user_clicks[i].tolist()
-                history = [int(h) for h in history]
-                print(hist_category_ids[i])
-                print(history)
-                saved_data += f'{history}\t{user_emb}\n'
-            file.write(saved_data)
+        # with open(os.path.join("visualize-data/users-history-batch-" + str(self.batch_idx) + ".tsv"), 'w',
+        #           encoding='utf-8') as file:
+        #     users_emb = hist_pooled_outputs.view(batch_size, -1)
+        #     # top1interests = sorted_interests.view(batch_size, -1)
+        #     users_emb = users_emb.cpu().detach().numpy()
+        #     # top1interests = top1interests.cpu().numpy()
+        #     saved_data = ''
+        #     num_categories = 18
+        #     user_clicks = torch.zeros((batch_size, num_categories), dtype=torch.float32).to(self.device)
+        #     # print('hist_category_ids', hist_category_ids)
+        #     for i in range(batch_size):
+        #         user_clicks[i] = torch.bincount(hist_category_ids[i], minlength=num_categories)
+        #     # print('user_clicks', user_clicks)
+        #     for i in range(len(users_emb)):
+        #         # top1 = top1interests[i][0]
+        #         user_emb = users_emb[i].tolist()
+        #         history = user_clicks[i].tolist()
+        #         history = [int(h) for h in history]
+        #         print(hist_category_ids[i])
+        #         print(history)
+        #         saved_data += f'{history}\t{user_emb}\n'
+        #     file.write(saved_data)
 
         if self.cl_news_category:
             curr_news2category = self.news2category(curr_pooled_outputs)
@@ -348,26 +347,26 @@ class UNBERT(nn.Module):
             sims_masks.append(news_category_sim)
             sims_masks.append(news_category_mask)
 
-            with open(os.path.join("visualize-data/currnews-batch-" + str(self.batch_idx) + ".tsv"), 'w',
-                      encoding='utf-8') as file:
-                curr_news_emb = curr_news2category.view(batch_size * num_clicked, -1).cpu().detach().numpy()
-                print(curr_news_emb)
-                print(curr_news_emb.shape)
-                cats = curr_category_ids.view(batch_size * num_clicked, -1).numpy()
-                subcats = curr_subcategory_ids.view(batch_size * num_clicked, -1).numpy()
-                for i in range(len(curr_news_emb)):
-                    emb = curr_news_emb[i].tolist()
-                    cat = cats[i]
-                    subcat = subcats[i]
-                    file.write(f'{cat}\t{subcat}\t{emb}\n')
+            # with open(os.path.join("visualize-data/currnews-batch-" + str(self.batch_idx) + ".tsv"), 'w',
+            #           encoding='utf-8') as file:
+            #     curr_news_emb = curr_news2category.view(batch_size * num_clicked, -1).cpu().detach().numpy()
+            #     print(curr_news_emb)
+            #     print(curr_news_emb.shape)
+            #     cats = curr_category_ids.view(batch_size * num_clicked, -1).numpy()
+            #     subcats = curr_subcategory_ids.view(batch_size * num_clicked, -1).numpy()
+            #     for i in range(len(curr_news_emb)):
+            #         emb = curr_news_emb[i].tolist()
+            #         cat = cats[i]
+            #         subcat = subcats[i]
+            #         file.write(f'{cat}\t{subcat}\t{emb}\n')
 
-            if self.batch_idx == 0:
-                with open(os.path.join("visualize-data/cat-emb-batch-" + str(self.batch_idx) + ".tsv"), 'w',
-                          encoding='utf-8') as file:
-                    for i in range(len(self.all_category_embedding)):
-                        # 使用.item()提取tensor中的数值
-                        vector = self.all_category_embedding[i].numpy().tolist()
-                        file.write(f'{i}\t{vector}\n')
+            # if self.batch_idx == 0:
+            #     with open(os.path.join("visualize-data/cat-emb-batch-" + str(self.batch_idx) + ".tsv"), 'w',
+            #               encoding='utf-8') as file:
+            #         for i in range(len(self.all_category_embedding)):
+            #             # 使用.item()提取tensor中的数值
+            #             vector = self.all_category_embedding[i].numpy().tolist()
+            #             file.write(f'{i}\t{vector}\n')
 
         if self.cl_news_subcategory:
             curr_news_sim = self.cos_sim(curr_pooled_outputs.view(batch_size * num_clicked, -1).unsqueeze(1),
@@ -378,7 +377,7 @@ class UNBERT(nn.Module):
             sims_masks.append(curr_news_mask)
 
         self.batch_idx += 1
-        print(self.batch_idx)
+        # print(self.batch_idx)
         # ------------------CL-user-end---------------------
 
         # 修改了BertModelForPrompt，得到prediction_scores,大小(batch_size * num_clicked, sequence_length, config.vocab_size)
@@ -429,7 +428,6 @@ class UNBERT(nn.Module):
         # print(mask_logits.size())
         # print(self.prompt_bert_answer, self.prompt_bert_answer_id)
         answer_logits = mask_logits[:, self.prompt_bert_answer_id]
-        # print('debug use')
         # # for idx in range(batch_size):
         # #     for idy in range(32):
         # #         embedding_output[idx][self.user_place+idy] = hist_pooled_outputs[idx][idy]
