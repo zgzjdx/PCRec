@@ -1,7 +1,7 @@
 python
 torch
 torchvision
-transformers
+transformers==2.11.0
 tqdm
 nltk
 numpy
