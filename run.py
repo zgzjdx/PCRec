@@ -12,7 +12,6 @@ from transformers import AutoTokenizer, get_linear_schedule_with_warmup, BertTok
 from torch.cuda import amp
 from tqdm import tqdm
 from time import gmtime, strftime
-
 from src.data_loader import MindDataset
 from src.model import UNBERT
 from src.loss import CLLoss, cl_loss, Loss
@@ -87,7 +86,7 @@ def parse_args():
     parser.add_argument('--news_category_weight', type=float, default=0.1)
     parser.add_argument('--news_subcategory_weight', type=float, default=0.1)
     # 增加随机数种子
-    parser.add_argument('--seed', type=int, default=2022)
+    parser.add_argument('--seed', type=int, default=2025)
     # continuous prompt
     parser.add_argument('--num_conti1', default=2, type=int, help='number of continuous tokens')
     parser.add_argument('--num_conti2', default=2, type=int, help='number of continuous tokens')
@@ -238,8 +237,6 @@ def main():
                                             train_batch['hist_input_mask'].to(device),
                                             train_batch['hist_mask'].to(device),
                                             train_batch['hist_category_ids'].to(device),
-                                            train_batch['CTR'].to(device),
-                                            train_batch['recency'].to(device),
                                             train_batch['template_ids'].to(device),
                                             train_batch['template_token_type'].to(device),
                                             train_batch['template_mask'].to(device),
@@ -279,8 +276,6 @@ def main():
                                         train_batch['hist_input_mask'].to(device),
                                         train_batch['hist_mask'].to(device),
                                         train_batch['hist_category_ids'].to(device),
-                                        train_batch['CTR'].to(device),
-                                        train_batch['recency'].to(device),
                                         train_batch['template_ids'].to(device),
                                         train_batch['template_token_type'].to(device),
                                         train_batch['template_mask'].to(device),
@@ -338,14 +333,14 @@ def main():
                     m_optim.step()
                 m_scheduler.step()
                 m_optim.zero_grad()
-            os.rename('visualize-data', 'visualize-data-epoch' + str(epoch))
+            # os.rename('visualize-data', 'visualize-data-epoch' + str(epoch))
 
-            if epoch < 2:
-                # don‘t eval on the first two epochs
-                printzzz("Epoch {}, Avg_loss:{:.4f}, Avg_category_loss:{:.4f}, Avg_user_loss:{:.4f}, Avg_news_category_loss:{:.4f}, Avg_news_subcategory_loss:{:.4f}".format(
-                        epoch + 1, avg_loss, avg_category_loss, avg_user_loss, avg_news_category_loss, avg_news_subcategory_loss))
-
-                continue
+            # if epoch < 2:
+            #     # don‘t eval on the first two epochs
+            #     printzzz("Epoch {}, Avg_loss:{:.4f}, Avg_category_loss:{:.4f}, Avg_user_loss:{:.4f}, Avg_news_category_loss:{:.4f}, Avg_news_subcategory_loss:{:.4f}".format(
+            #             epoch + 1, avg_loss, avg_category_loss, avg_user_loss, avg_news_category_loss, avg_news_subcategory_loss))
+            #
+            #     continue
 
             if args.eval:
                 if args.use_amp:
