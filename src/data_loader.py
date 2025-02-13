@@ -243,15 +243,15 @@ class MindDataset(Dataset):
         df = pd.read_csv(behavior_file, sep='\t', header=None,
                          names=['impression_id', 'user_id', 'time', 'news_history', 'impressions'])
 
-        CTR_file = os.path.join(self.data_path, "ctr.csv")
-        CTR_dataframe = pd.read_csv(CTR_file)
-        CTR = dict(zip(CTR_dataframe["news_id"], CTR_dataframe["ctr"].apply(lambda x: float(x))))
+        # CTR_file = os.path.join(self.data_path, "ctr.csv")
+        # CTR_dataframe = pd.read_csv(CTR_file)
+        # CTR = dict(zip(CTR_dataframe["news_id"], CTR_dataframe["ctr"].apply(lambda x: float(x))))
 
-        recency_file = os.path.join(self.data_path, self._mode, "recency.csv")
-        recency_df = pd.read_csv(recency_file)
+        # recency_file = os.path.join(self.data_path, self._mode, "recency.csv")
+        # recency_df = pd.read_csv(recency_file)
         
-        df["recency"] = recency_df["recency"].apply(lambda x: list(map(int, str(x).split(", "))))
-        df["recency_dict"] = list(map(lambda x, y: get_recency_dict(x, y), df["impressions"], df["recency"]))
+        # df["recency"] = recency_df["recency"].apply(lambda x: list(map(int, str(x).split(", "))))
+        # df["recency_dict"] = list(map(lambda x, y: get_recency_dict(x, y), df["impressions"], df["recency"]))
         # dict(zip(x["impressions"].split(" "), x["recency"]))
         df["impressions_id"] = df["impressions"].apply(lambda x: x.split())
         # todo 缺失值可以想办法填充，这是用户的兴趣，很重要
@@ -290,12 +290,12 @@ class MindDataset(Dataset):
         # 处理后的newsid列是5个新闻的id
         # 处理后的click列是5个新闻被点击的情况 0 0 0 1 0 
         df["impression_list"] = df["impression"].apply(lambda x: x.split())
-        if self._mode == "train":
-            df["ctr"] = df["news_id"].apply(lambda x: [CTR[t] for t in x]) 
-            df["recency"] = list(map(lambda x, y: get_recency(x, y), df["recency_dict"], df["impression"]))
-        else:
-            df["ctr"] = df["impression"].apply(lambda x: [CTR[x.split("-")[0]]])
-            df["recency"] = list(map(lambda x, y: get_recency(x, y), df["recency_dict"], df["impression"]))
+        # if self._mode == "train":
+        #     df["ctr"] = df["news_id"].apply(lambda x: [CTR[t] for t in x])
+        #     df["recency"] = list(map(lambda x, y: get_recency(x, y), df["recency_dict"], df["impression"]))
+        # else:
+        #     df["ctr"] = df["impression"].apply(lambda x: [CTR[x.split("-")[0]]])
+        #     df["recency"] = list(map(lambda x, y: get_recency(x, y), df["recency_dict"], df["impression"]))
         return df
 
     def process_news(self) -> Dict[str, Any]:
@@ -367,9 +367,9 @@ class MindDataset(Dataset):
         # batch_size * max_hist_len
         hist_category_ids = torch.tensor([item['hist_news']['hist_category_ids'] for item in batch])
         # 
-        CTR = torch.tensor([item['CTR'] for item in batch])
+        # CTR = torch.tensor([item['CTR'] for item in batch])
         # recency
-        recency = torch.tensor([item['recency'] for item in batch])
+        # recency = torch.tensor([item['recency'] for item in batch])
         # prompt
         template_ids = torch.tensor([self.template_ids for _ in batch])
         template_token_type = torch.tensor([self.template_token_type for _ in batch])
@@ -380,8 +380,8 @@ class MindDataset(Dataset):
                   'curr_input_mask': curr_input_mask,
                   'curr_category_ids': curr_category_ids,
                   'curr_subcategory_ids': curr_subcategory_ids,
-                  'CTR': CTR,
-                  'recency': recency,
+                  # 'CTR': CTR,
+                  # 'recency': recency,
                   'hist_input_ids': hist_input_ids,
                   'hist_token_type': hist_token_type,
                   'hist_input_mask': hist_input_mask,
@@ -493,16 +493,14 @@ class MindDataset(Dataset):
 
     def __getitem__(self, index: int) -> Dict[str, Any]:
         example = self._examples.iloc[index]
-        ctr = self._examples.iloc[index]["ctr"]
-        recency = self._examples.iloc[index]["recency"]
+        # ctr = self._examples.iloc[index]["ctr"]
+        # recency = self._examples.iloc[index]["recency"]
         curr_input_ids, curr_token_type, curr_input_mask, curr_category_ids, curr_subcategory_ids, hist_news = self.pack_bert_features(example)
         inputs = {'curr_input_ids': curr_input_ids,
                   'curr_type_ids': curr_token_type,
                   'curr_input_mask': curr_input_mask,
                   'curr_category_ids': curr_category_ids,
                   'curr_subcategory_ids': curr_subcategory_ids,
-                  'CTR': ctr,
-                  'recency':recency,
                   'hist_news': hist_news,
                   }
         if self._mode == 'train':
