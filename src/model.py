@@ -211,7 +211,7 @@ class UNBERT(nn.Module):
         return overlap_matrix
 
     def forward(self, curr_input_ids, curr_type_ids, curr_input_mask, curr_category_ids, curr_subcategory_ids, hist_input_ids,
-                hist_token_type, hist_input_mask, hist_mask, hist_category_ids, CTR, recency, template_ids, template_token_type, template_mask,
+                hist_token_type, hist_input_mask, hist_mask, hist_category_ids, template_ids, template_token_type, template_mask,
                 click_label):
         curr_category_embedding = self.category_embedding(curr_category_ids)
         hist_category_embedding = self.category_embedding(hist_category_ids)
